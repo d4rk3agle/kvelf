@@ -1,0 +1,14 @@
+#ifndef ERROR_H
+#define ERROR_H
+
+
+#define ERROR_NO_FILE_PROVIDED 1
+#define ERROR_CANNOT_OPEN_FILE 2
+#define ERROR_CANNOT_READ_FILE 3
+#define ERROR_NOT_VALID_FILE 4
+#define ERROR_CANNOT_SETUP_CMD 5
+
+
+
+#endif
+

@@ -1,13 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <string.h>
 #include "./types.h"
 #include "./debug.h"
 #include "./cli.h"
 #include "./elf.h"
 #include "./parse.h"
 #include "./error.h"
-
 
 typedef struct elf_offsets{
 	u32 elfHeaderOffset;	/* Offset of the ELF header */
@@ -222,45 +221,45 @@ void basic_analysis(kvelf_basic_params_t * kvelfp){
 void visualize_elf_file(kvelf_basic_params_t * kvelfp){
 
 
+	// Temporary buffer for concatinating multiple values
+	u8 tempBuff[100];
+
 	//TODO size relative algorithm
-	//Remove printf?
+
 
 
 	//TODO size is in the header
-	display("\t\t\t\t----------------------------------\n",DISPLAY_COLOR_RED);
-	printf("\t\t\t\t|0x%08x(%dB)                 |\n",kvelfp->elfOffsets.elfHeaderOffset,kvelfp->elfHeaderSize);
-	// display("\t\t\t\t|                             |\n",DISPLAY_COLOR_RED);
-	display("\t\t\t\t|           ELF Header           |\n",DISPLAY_COLOR_RED);
-	display("\t\t\t\t|                                |\n",DISPLAY_COLOR_RED);
-	// display("\t\t\t\t|                             |\n",DISPLAY_COLOR_RED);
-	// display("-------------------------------\n",DISPLAY_COLOR_RED);
+	display("\t\t\t\t------------------------------------------\n",DISPLAY_COLOR_RED);
+	display("\t\t\t\t|",DISPLAY_COLOR_RED);
+	printf("0x%016x(%dB)",kvelfp->elfOffsets.elfHeaderOffset,kvelfp->elfHeaderSize);
+	display("                 |\n",DISPLAY_COLOR_RED);
+	display("\t\t\t\t|                ELF Header              |\n",DISPLAY_COLOR_RED);
+	display("\t\t\t\t|                                        |\n",DISPLAY_COLOR_RED);
+
+	if(kvelfp->elfOffsets.elfSegmentHeaderOffset){
+		display("\t\t\t\t------------------------------------------\n",DISPLAY_COLOR_ORANGE);
+		display("\t\t\t\t|",DISPLAY_COLOR_ORANGE);
+		printf("0x%016x",kvelfp->elfOffsets.elfSegmentHeaderOffset);
+		display("                      |\n",DISPLAY_COLOR_ORANGE);
+		display("\t\t\t\t|                                        |\n",DISPLAY_COLOR_ORANGE);
+		display("\t\t\t\t|            Segment Headers             |\n",DISPLAY_COLOR_ORANGE);
+		display("\t\t\t\t|                                        |\n",DISPLAY_COLOR_ORANGE);
+	}
 
 	if(kvelfp->elfOffsets.elfSectionHeaderOffset){
 
-		display("\t\t\t\t----------------------------------\n",DISPLAY_COLOR_WHITE);
-		printf("\t\t\t\t|0x%08x                      |\n",kvelfp->elfOffsets.elfSectionHeaderOffset);
-		// display("\t\t\t\t|                                |\n",DISPLAY_COLOR_WHITE);
-		// display("\t\t\t\t|                                |\n",DISPLAY_COLOR_WHITE);
-		display("\t\t\t\t|                                |\n",DISPLAY_COLOR_WHITE);
-		display("\t\t\t\t|        Section Headers         |\n",DISPLAY_COLOR_WHITE);
-		// display("\t\t\t\t|             Header             |\n",DISPLAY_COLOR_WHITE);
-		display("\t\t\t\t|                                |\n",DISPLAY_COLOR_WHITE);
-		// display("\t\t\t\t|                                |\n",DISPLAY_COLOR_WHITE);
-		// display("\t\t\t\t|                                |\n",DISPLAY_COLOR_WHITE);
+		display("\t\t\t\t------------------------------------------\n",DISPLAY_COLOR_CYAN);
+		display("\t\t\t\t|",DISPLAY_COLOR_CYAN);
+		printf("0x%016x",kvelfp->elfOffsets.elfSectionHeaderOffset);
+		display("                      |\n",DISPLAY_COLOR_CYAN);
+		display("\t\t\t\t|                                        |\n",DISPLAY_COLOR_CYAN);
+		display("\t\t\t\t|             Section Headers            |\n",DISPLAY_COLOR_CYAN);
+		display("\t\t\t\t|                                        |\n",DISPLAY_COLOR_CYAN);
+		display("\t\t\t\t------------------------------------------\n",DISPLAY_COLOR_CYAN);		
 	}
-	if(kvelfp->elfOffsets.elfSegmentHeaderOffset){
+	
 
-		display("\t\t\t\t----------------------------------\n",DISPLAY_COLOR_ORANGE);
-		printf("\t\t\t\t|0x%08x                      |\n",kvelfp->elfOffsets.elfSegmentHeaderOffset);
-		// display("\t\t\t\t|                                |\n",DISPLAY_COLOR_WHITE);
-		// display("\t\t\t\t|                                |\n",DISPLAY_COLOR_WHITE);
-		display("\t\t\t\t|                                |\n",DISPLAY_COLOR_ORANGE);
-		display("\t\t\t\t|        Segment Headers         |\n",DISPLAY_COLOR_ORANGE);
-		// display("\t\t\t\t|             Header             |\n",DISPLAY_COLOR_WHITE);
-		display("\t\t\t\t|                                |\n",DISPLAY_COLOR_ORANGE);
-		// display("\t\t\t\t|                                |\n",DISPLAY_COLOR_WHITE);
-		// display("\t\t\t\t|                                |\n",DISPLAY_COLOR_WHITE);
-	}
+	printf("\n\n");
 	
 	if(kvelfp->elfOffsets.elfSectionHeaderOffset){
 
@@ -269,6 +268,7 @@ void visualize_elf_file(kvelf_basic_params_t * kvelfp){
 		//TODO
 		u8 sectionNameBuff[50];
 		u32 idx=0;
+
 
 		for(u32 i=0;i<kvelfp->elfNumOfSections;i++){
 
@@ -288,18 +288,23 @@ void visualize_elf_file(kvelf_basic_params_t * kvelfp){
 				idx++;
 			}
 
+			if(i==0){
+				printf("    Sections ---->");
+				display("\t\t------------------------------------------\n",DISPLAY_COLOR_GREEN_YELLOW);
 
-			//TODO section name
-			display("\t\t\t\t----------------------------------\n",DISPLAY_COLOR_WHITE);
-			printf("\t\t\t\t|0x%08x(%09dB)          |\n",kvelfp->elfSectionsMetadata[i].sOffset,kvelfp->elfSectionsMetadata[i].sSize);
-			// display("\t\t\t\t|                                |\n",DISPLAY_COLOR_WHITE);
-			// display("\t\t\t\t|                                |\n",DISPLAY_COLOR_WHITE);
-			display("\t\t\t\t|                                |\n",DISPLAY_COLOR_WHITE);
-			printf("\t\t\t\t|%20s            |\n",sectionNameBuff);
-			// display("\t\t\t\t|             Header             |\n",DISPLAY_COLOR_WHITE);
-			display("\t\t\t\t|                                |\n",DISPLAY_COLOR_WHITE);
-			// display("\t\t\t\t|                                |\n",DISPLAY_COLOR_WHITE);
-			// display("\t\t\t\t|                                |\n",DISPLAY_COLOR_WHITE);
+			}else
+				display("\t\t\t\t------------------------------------------\n",DISPLAY_COLOR_GREEN_YELLOW);
+			
+			sprintf(tempBuff,"\t\t\t\t|0x%016llx(%09lldB)          |\n",kvelfp->elfSectionsMetadata[i].sOffset,kvelfp->elfSectionsMetadata[i].sSize);
+			display(tempBuff,DISPLAY_COLOR_WHITE);
+			display("\t\t\t\t|                                        |\n",DISPLAY_COLOR_WHITE);
+			if(i==0){
+        		sprintf(tempBuff,"\t\t\t\t|%*s%*s|\n",22,"NULL",18,"");
+			}else
+        		sprintf(tempBuff,"\t\t\t\t|%*s%*s|\n",20+strlen(sectionNameBuff)/2,sectionNameBuff,20-strlen(sectionNameBuff)/2,"");
+
+			display(tempBuff,DISPLAY_COLOR_WHITE);
+			display("\t\t\t\t|                                        |\n",DISPLAY_COLOR_WHITE);
 		}
 
 	}
@@ -311,12 +316,25 @@ void visualize_elf_file(kvelf_basic_params_t * kvelfp){
 void display_elf_abstract(kvelf_basic_params_t * kvelfp){
 
 	printf("\n");
-	printf("Entry: 0x%016x\n",kvelfp->elfEntrypoint);
-	printf("Class: %s\n",get_elf_class_string(kvelfp->elfClass));
-	printf("Encoding: %s\n",get_elf_dataencoding_string(kvelfp->elfEncoding));
-	printf("Type: %s\n",get_elf_object_file_type(kvelfp->elfFiletype));
-	printf("Machine: %s\n",get_elf_machine(kvelfp->elfMachine));
-	printf("Version: %d\n",kvelfp->elfFileVersion);
+
+    display("Entry: ",DISPLAY_COLOR_ORANGE);
+	printf("0x%016llx\n",kvelfp->elfEntrypoint);
+
+	display("Class: ",DISPLAY_COLOR_ORANGE);
+	printf("%s\n",get_elf_class_string(kvelfp->elfClass));
+    
+    display("Encoding: ",DISPLAY_COLOR_ORANGE);	
+	printf("%s\n",get_elf_dataencoding_string(kvelfp->elfEncoding));
+    
+    display("Type: ",DISPLAY_COLOR_ORANGE);
+	printf("%s\n",get_elf_object_file_type(kvelfp->elfFiletype));
+
+    display("Machine: ",DISPLAY_COLOR_ORANGE);
+	printf("%s\n",get_elf_machine(kvelfp->elfMachine));
+	
+    display("File Version: ",DISPLAY_COLOR_ORANGE);
+	printf("%d\n",kvelfp->elfFileVersion);
+	
 	printf("\n");
 }
 
@@ -374,13 +392,14 @@ void prompt(kvelf_basic_params_t * kvelfp){
 	//TODO security of reading
 	u8 usercmd[KVELF_INPUT_CMD_MAX_LENGTH];
 
-	u32 fileOffset=0;
+	//TODO not covering whole range
+	u64 fileOffset=0;
 
 
 	/* Matching priority is important since the match finding is the case not the whole !!*/
 
 	while(1){
-		printf("0x%08x> ",fileOffset);
+		printf("0x%016llx> ",fileOffset);
 		fgets(usercmd, KVELF_INPUT_CMD_MAX_LENGTH, stdin);
 	
 		if(regexec(&cliRegex[KVELF_CMD_REGEX_EXIT_IDX], usercmd, 0, NULL, 0)==0){
@@ -391,10 +410,9 @@ void prompt(kvelf_basic_params_t * kvelfp){
 			display_elf_abstract(kvelfp);
 		else if(regexec(&cliRegex[KVELF_CMD_REGEX_VISUALIZE_IDX], usercmd, 0, NULL, 0)==0)
 			visualize_elf_file(kvelfp);
-		else if(regexec(&cliRegex[KVELF_CMD_REGEX_LIST_SYMBOLS_IDX], usercmd, 0, NULL, 0)==0){
+		else if(regexec(&cliRegex[KVELF_CMD_REGEX_LIST_SYMBOLS_IDX], usercmd, 0, NULL, 0)==0)
 			parse_elf_symbols(kvelfp->fp,0,kvelfp->elfClass);
-			printf("SYMS");
-		}
+		
 		else if(regexec(&cliRegex[KVELF_CMD_REGEX_LIST_SEGMENTS_IDX], usercmd, 0, NULL, 0)==0)
 			parse_elf_segments(kvelfp->fp,kvelfp->elfOffsets.elfSegmentHeaderOffset,kvelfp->elfNumOfSegments,kvelfp->elfClass);
 		
@@ -407,7 +425,7 @@ void prompt(kvelf_basic_params_t * kvelfp){
 			parse_elf_relocs(kvelfp->fp,kvelfp->elfClass);
 		else if(regexec(&cliRegex[KVELF_CMD_REGEX_SEEK_IDX], usercmd, 0, NULL, 0)==0){
 			u8 * givenNumber =  get_word_in_string_by_idx(usercmd,1);
-			fileOffset = strtol(givenNumber, NULL, 0);		
+			fileOffset = strtoull(givenNumber, NULL, 0);		
 		}
 		else if(regexec(&cliRegex[KVELF_CMD_REGEX_PARSE_RAW_BYTES_IDX], usercmd, 0, NULL, 0)==0){
 			u8 * givenBytesCount =  get_word_in_string_by_idx(usercmd,1);
@@ -416,7 +434,7 @@ void prompt(kvelf_basic_params_t * kvelfp){
 		}
 		else if(regexec(&cliRegex[KVELF_CMD_REGEX_PARSE_AT_IDX], usercmd, 0, NULL, 0)==0){
 			u8 * givenOffsetStr =  get_word_in_string_by_idx(usercmd,1);
-			u32 givenOffset = strtol(givenOffsetStr, NULL, 0);
+			u64 givenOffset =(unsigned long long) strtoll(givenOffsetStr, NULL, 0);
 			parse_at(kvelfp,givenOffset);
 		}
 		else if(regexec(&cliRegex[KVELF_CMD_REGEX_PARSE_IDX], usercmd, 0, NULL, 0)==0)

@@ -268,7 +268,85 @@ void get_elf_segment_flag(u32 segmentFlag , u8 * segmentFlags , u8 segmentFlagsB
         segmentFlags[index++]='W';
     if (segmentFlag&PF_X)
         segmentFlags[index++]='X';
+}
 
-    // printf("%s\n",seg)
+
+/* Get string representation of the ELF symbol type */
+u8 * get_elf_symbol_type(u8 type){
+    if(type==STT_NOTYPE)
+        return "None";
+    if(type==STT_OBJECT)
+        return "Object";
+    if(type==STT_FUNC)
+        return "Function";
+    if(type==STT_SECTION)
+        return "Section";
+    if(type==STT_FILE)
+        return "File";
+    if(type==STT_COMMON)
+        return "Common";
+    if(type==STT_LOPROC)
+        return "LOP";
+    if(type==STT_HIPROC)
+        return "HIP";
+    return "N/A";
+}
+
+/* Get string representation of the ELF symbol binding */
+u8 * get_elf_symbol_binding(u8 binding){
+    if(binding==STB_LOCAL)
+        return "Local";
+    if(binding==STB_GLOBAL)
+        return "Global";
+    if(binding==STB_WEAK)
+        return "Weak";
+    if(binding==STB_LOPROC)
+        return "LOP";
+    if(binding==STB_HIPROC)
+        return "HIP";
+    return "N/A";
+}
+
+/* Get string representation of the ELF symbol visibility */
+u8 * get_elf_symbol_visibility(u8 vis){
+    if(vis==STV_DEFAULT)
+        return "Default";
+    if(vis==STV_INTERNAL)
+        return "Internal";
+    if(vis==STV_HIDDEN)
+        return "Hidden";
+    if(vis==STV_PROTECTED)
+        return "Protected";
+    return "N/A";
 
 }
+
+
+/* Get string representation of the ELF relocation type */
+u8 * get_elf_reloc_type(u32 type){
+    if(type==R_386_NONE)
+        return "None";
+    if(type==R_386_32)
+        return "R_386_32";
+    if(type==R_386_PC32)
+        return "R_386_PC32";
+    if(type==R_386_GOT32)
+        return "R_386_GOT32";
+    if(type==R_386_PLT32)
+        return "R_386_PLT32";
+    if(type==R_386_COPY)
+        return "R_386_COPY";
+    if(type==R_386_GLOB_DAT)
+        return "R_386_GLOB_DAT";
+    if(type==R_386_JMP_SLOT)
+        return "R_386_JMP_SLOT";
+    if(type==R_386_RELATIVE)
+        return "R_386_RELATIVE";
+
+    return "N/A";
+
+}
+
+
+
+

@@ -19,7 +19,7 @@ void parse_elf_symbols(FILE * fp , u32 symbolTableOffset , u8 elfClass);
 void parse_elf_relocs(FILE * fp, u8 elfClass);
 
 /* This function simply dumps the given number of raw bytes */
-void pe_parse_raw_bytes(FILE *fp, u32 rawBytesOffset, u32 nofRawBytes);
+void pe_parse_raw_bytes(FILE *fp, u64 rawBytesOffset, u32 nofRawBytes);
 
 /* Parse an ELF section */
 void parse_elf_section(FILE *fp, u32 sectionsOffset, u32 sectionIdx, u8 elfClass);

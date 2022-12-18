@@ -3984,4 +3984,17 @@ u8 * get_elf_segment_type(u32 segmentType);
 /* Get string representation of the ELF segment flag */
 void get_elf_segment_flag(u32 segmentFlag , u8 * segmentFlags , u8 segmentFlagsBuffSize);
 
+/* Get string representation of the ELF symbol type */
+u8 * get_elf_symbol_type(u8 type);
+
+/* Get string representation of the ELF symbol binding */
+u8 * get_elf_symbol_binding(u8 binding);
+
+
+/* Get string representation of the ELF symbol visibility */
+u8 * get_elf_symbol_visibility(u8 vis);
+
+/* Get string representation of the ELF relocation type */
+u8 * get_elf_reloc_type(u32 type);
+
 #endif	/* elf.h */

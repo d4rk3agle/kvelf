@@ -28,7 +28,7 @@ void parse_elf_header(FILE *fp, u32 elfHeaderOffset){
     printf("%s\n",get_elf_abi_string(elfHeaderFirst16Bytes[EI_OSABI]));
     
     display("ABI Ver: ",DISPLAY_COLOR_ORANGE);
-    printf("ABI Ver: %d\n",elfHeaderFirst16Bytes[EI_ABIVERSION]);
+    printf("%d\n",elfHeaderFirst16Bytes[EI_ABIVERSION]);
 
 
     fseek(fp,elfHeaderOffset,SEEK_SET);
@@ -96,12 +96,12 @@ void parse_elf_header(FILE *fp, u32 elfHeaderOffset){
             printf("%s\n",get_elf_machine(fileElf64H.e_machine));
            
             display("Entry: ",DISPLAY_COLOR_ORANGE);
-            printf("0x%016x\n",fileElf64H.e_entry);
+            printf("0x%016lx\n",fileElf64H.e_entry);
 
             // Processing the sections
             if (fileElf64H.e_shnum) {
                 display("Sections Table Address: ",DISPLAY_COLOR_ORANGE);
-                printf("0x%016x\n", fileElf64H.e_shoff);
+                printf("0x%016lx\n", fileElf64H.e_shoff);
                 
                 display("Sections: ",DISPLAY_COLOR_ORANGE);
                 printf("%d of %d bytes\n", fileElf64H.e_shnum, fileElf64H.e_shentsize);
@@ -117,7 +117,7 @@ void parse_elf_header(FILE *fp, u32 elfHeaderOffset){
             // Processing the segments
             if (fileElf64H.e_phnum) {
                 display("Segments Table Address: ",DISPLAY_COLOR_ORANGE);
-                printf("0x%016x\n", fileElf64H.e_phoff);
+                printf("0x%016lx\n", fileElf64H.e_phoff);
                 
                 display("Segments: ",DISPLAY_COLOR_ORANGE);
                 printf("%d of %d bytes \n", fileElf64H.e_phnum, fileElf64H.e_phentsize);
@@ -199,7 +199,7 @@ void parse_elf_sections(FILE * fp ,u32 sectionsOffset, u32 numOfSections, u8 sec
                         printf("0x%08x\n",elf32Shdr.sh_offset);
 
                         display("    Size:  ",DISPLAY_COLOR_ORANGE);
-                        printf("    Size:  %d(B)\n",elf32Shdr.sh_size);
+                        printf("%d(B)\n",elf32Shdr.sh_size);
                         
                         display("    Align:  ",DISPLAY_COLOR_ORANGE);
                         printf("0x%08x\n",elf32Shdr.sh_addralign);
@@ -261,16 +261,16 @@ void parse_elf_sections(FILE * fp ,u32 sectionsOffset, u32 numOfSections, u8 sec
                         printf("%s\n",sectionFlags);
                         
                         display("    Address:  ",DISPLAY_COLOR_ORANGE);
-                        printf("0x%016x\n",elf64Shdr.sh_addr);
+                        printf("0x%016lx\n",elf64Shdr.sh_addr);
                         
                         display("    Offset:  ",DISPLAY_COLOR_ORANGE);
-                        printf("0x%08x\n",elf64Shdr.sh_offset);
+                        printf("0x%08lx\n",elf64Shdr.sh_offset);
 
                         display("    Size:  ",DISPLAY_COLOR_ORANGE);
-                        printf("    Size:  %d(B)\n",elf64Shdr.sh_size);
+                        printf("%ld(B)\n",elf64Shdr.sh_size);
                         
                         display("    Align:  ",DISPLAY_COLOR_ORANGE);
-                        printf("0x%08x\n",elf64Shdr.sh_addralign);
+                        printf("0x%08lx\n",elf64Shdr.sh_addralign);
                         
                         display("    Link:  ",DISPLAY_COLOR_ORANGE);
                         printf("0x%08x\n",elf64Shdr.sh_link);
@@ -279,7 +279,7 @@ void parse_elf_sections(FILE * fp ,u32 sectionsOffset, u32 numOfSections, u8 sec
                         printf("0x%08x\n",elf64Shdr.sh_info);
                         
                         display("    EntSize:  ",DISPLAY_COLOR_ORANGE);
-                        printf("%d(B)\n",elf64Shdr.sh_entsize);
+                        printf("%ld(B)\n",elf64Shdr.sh_entsize);
 
                     }
                 }
@@ -339,13 +339,13 @@ void parse_elf_section(FILE *fp, u32 sectionsOffset, u32 sectionIdx, u8 elfClass
 
             get_elf_section_flag(elf64Shdr.sh_flags,sectionFlags,16);
             printf("    Flags:  %s\n",sectionFlags);
-            printf("    Address:  0x%016x\n",elf64Shdr.sh_addr);
-            printf("    Offset:  0x%08x\n",elf64Shdr.sh_offset);
-            printf("    Size:  %d(B)\n",elf64Shdr.sh_size);
-            printf("    Align:  0x%08x\n",elf64Shdr.sh_addralign);
+            printf("    Address:  0x%016lx\n",elf64Shdr.sh_addr);
+            printf("    Offset:  0x%08lx\n",elf64Shdr.sh_offset);
+            printf("    Size:  %ld(B)\n",elf64Shdr.sh_size);
+            printf("    Align:  0x%08lx\n",elf64Shdr.sh_addralign);
             printf("    Link:  0x%08x\n",elf64Shdr.sh_link);
             printf("    Info:  0x%08x\n",elf64Shdr.sh_info);
-            printf("    EntSize: %d(B)\n",elf64Shdr.sh_entsize);
+            printf("    EntSize: %ld(B)\n",elf64Shdr.sh_entsize);
         }
     }else
         debug("Invalid ELF class, cannot parse sections%x\n",DEBUG_STATUS_ERROR);
@@ -360,13 +360,17 @@ void parse_elf_segments(FILE * fp ,u32 segmentOffset, u32 numOfSegments, u8 elfC
     	debug("No segments\n",DEBUG_STATUS_INF);
     else{
 
+        // Buffer for the headers
+        u8 headerBuffers[110];
+        sprintf(headerBuffers,"%-18s%-20s%-20s%-15s%-8s%-8s%-6s%-1s\n","Type", "Offset","VirAddr","PhyAddr","fSize","mSize","Flags","Align");
+        display(headerBuffers,DISPLAY_COLOR_ORANGE);
+
         if (elfClass == ELFCLASS32) {
             // Seeking to the segments table
             fseek(fp, segmentOffset, SEEK_SET);
 
             // Reading the segments
             Elf32_Phdr elf32Phdr;
-            printf("%-10s%-10s%-15s%-15s%-15s%-25s%-10s%-10s\n", "Type", "Offset","VirAddr","PhyAddr","fSize","mSize","Flags","Align");
 
             // Buffers for segments flag
             u8 segmentFlag[10];
@@ -374,7 +378,8 @@ void parse_elf_segments(FILE * fp ,u32 segmentOffset, u32 numOfSegments, u8 elfC
             for ( u32 i=0 ; i<numOfSegments;i++ ){
                 fread(&elf32Phdr,1,sizeof(Elf32_Phdr),fp);
                 get_elf_segment_flag(elf32Phdr.p_flags , segmentFlag , 10);
-                printf("%-10s0x%-10x0x%-15x0x%-15x%-15d%-25d%-10s0x%-10x\n", get_elf_segment_type(elf32Phdr.p_type),elf32Phdr.p_offset,elf32Phdr.p_vaddr,elf32Phdr.p_paddr,elf32Phdr.p_filesz,elf32Phdr.p_memsz,segmentFlag,elf32Phdr.p_align);
+                printf("%-12s0x%-18.016x0x%-18.016x0x%-20.016x%-8d%-8d%-6s0x%x\n",get_elf_segment_type(elf32Phdr.p_type),elf32Phdr.p_offset,elf32Phdr.p_vaddr,elf32Phdr.p_paddr,elf32Phdr.p_filesz,elf32Phdr.p_memsz,segmentFlag,elf32Phdr.p_align);
+
             }
         }
         else if (elfClass == ELFCLASS64){
@@ -384,7 +389,6 @@ void parse_elf_segments(FILE * fp ,u32 segmentOffset, u32 numOfSegments, u8 elfC
 
             // Reading the segments
             Elf64_Phdr elf64Phdr;
-            printf("%-10s%-10s%-15s%-15s%-15s%-25s%-10s%-10s\n", "Type", "Offset","VirAddr","PhyAddr","fSize","mSize","Flags","Align");
 
             // Buffers for segment flag
             u8 segmentFlag[10];
@@ -392,7 +396,7 @@ void parse_elf_segments(FILE * fp ,u32 segmentOffset, u32 numOfSegments, u8 elfC
             for ( u32 i=0 ; i<numOfSegments;i++ ){
                 fread(&elf64Phdr,1,sizeof(Elf64_Phdr),fp);
                 get_elf_segment_flag(elf64Phdr.p_flags , segmentFlag , 10);
-                printf("%-10s0x%-10x0x%-15x0x%-15x%-15d%-25d%-10s0x%-10x\n", get_elf_segment_type(elf64Phdr.p_type),elf64Phdr.p_offset,elf64Phdr.p_vaddr,elf64Phdr.p_paddr,elf64Phdr.p_filesz,elf64Phdr.p_memsz,segmentFlag,elf64Phdr.p_align);
+                printf("%-12s0x%-18.016lx0x%-18.016lx0x%-20.016lx%-8ld%-8ld%-6s0x%lx\n", get_elf_segment_type(elf64Phdr.p_type),elf64Phdr.p_offset,elf64Phdr.p_vaddr,elf64Phdr.p_paddr,elf64Phdr.p_filesz,elf64Phdr.p_memsz,segmentFlag,elf64Phdr.p_align);
             }
         }
         else
@@ -457,7 +461,7 @@ void parse_elf_symbols(FILE * fp , u32 symbolTableOffset , u8 elfClass){
 
                     fread(&elf32Shdr, 1, sizeof(Elf32_Shdr), fp);
 
-                    if (elf32Shdr.sh_type == SHT_SYMTAB) {
+                    if (elf32Shdr.sh_type == SHT_SYMTAB || elf32Shdr.sh_type==SHT_DYNSYM) {
 
                         printf("\nSymbols of section '%s' are: \n",shStrings+elf32Shdr.sh_name);
                         printf("-------------------------------\n");
@@ -484,25 +488,18 @@ void parse_elf_symbols(FILE * fp , u32 symbolTableOffset , u8 elfClass){
 
                         // Symbol entry
                         Elf32_Sym elf32Sym;
-                        printf("%-10s%-10s%-15s%-15s%-25s%-10s\n", "Value", "Size","Type","Binding","Index","Name");
 
-                        u8 symbolBinding[10];
-                        u8 symbolType[10];
-                        u8 symbolOther[10];
+                        // Buffer for the headers
+                        u8 headerBuffers[110];
+                        sprintf(headerBuffers,"%-11s%-10s%-10s%-11s%-10s%-10s%-15s\n","   Value", "Size","Type","Binding","Index","Vis","Name");
+                        display(headerBuffers,DISPLAY_COLOR_ORANGE);
+
 
                         // Number of symbols is total size divided by entry size
                         for ( u32 i=0; i< elf32Shdr.sh_size / elf32Shdr.sh_entsize ;i++){
 
                             fread(&elf32Sym,1,sizeof(Elf32_Sym),fp);
-
-                            // kelfv_resolve_symbol_type_binding(elf32Sym.st_info,symbolType,10,symbolBinding,10);
-                            // kelfv_resolve_symbol_other(elf32Sym.st_other,symbolOther,10);
-
-
-                            if ( elf32Sym.st_shndx == 0 )
-                                printf("0x%-10x0x%-10x%-10s%-10s%-10s%-10s%-25s\n",elf32Sym.st_value,elf32Sym.st_size,symbolType,symbolBinding,"UNK",symbolOther,symbolsNames + elf32Sym.st_name);
-                            else
-                                printf("0x%-10x0x%-10x%-10s%-10s%-10d%-10s%-25s\n",elf32Sym.st_value,elf32Sym.st_size,symbolType,symbolBinding,elf32Sym.st_shndx,symbolOther,symbolsNames + elf32Sym.st_name);
+                            printf("0x%-10.08x0x%-6.x%-12s%-10s%-8d%-10s%-25s\n",elf32Sym.st_value,elf32Sym.st_size,get_elf_symbol_type(elf32Sym.st_info&0xf),get_elf_symbol_binding(elf32Sym.st_info >> 4),elf32Sym.st_shndx,get_elf_symbol_visibility(elf32Sym.st_other),symbolsNames + elf32Sym.st_name);
 
                         }
 
@@ -564,8 +561,12 @@ void parse_elf_symbols(FILE * fp , u32 symbolTableOffset , u8 elfClass){
 
                     fread(&elf64Shdr, 1, sizeof(Elf64_Shdr), fp);
 
-                    if (elf64Shdr.sh_type == SHT_SYMTAB) {
-                        //TODO, index of symbols
+                    // Storing the current offset
+                    u32 currOff=ftell(fp);
+
+                    if ((elf64Shdr.sh_type == SHT_SYMTAB) || (elf64Shdr.sh_type==SHT_DYNSYM)) {
+
+                        // //TODO, index of symbols
                         printf("\nSymbols of section '%s' are: \n",shStrings+elf64Shdr.sh_name);
                         printf("-------------------------------\n");
 
@@ -591,29 +592,23 @@ void parse_elf_symbols(FILE * fp , u32 symbolTableOffset , u8 elfClass){
 
                         // Symbol entry
                         Elf64_Sym elf64Sym;
-                        printf("%-10s%-10s%-15s%-15s%-25s%-10s%-15s\n", "Value", "Size","Type","Binding","Index","Visibility","Name");
+                        u8 headerBuffers[110];
+                        sprintf(headerBuffers,"%-11s%-10s%-10s%-11s%-10s%-10s%-15s\n","   Value", "Size","Type","Binding","Index","Vis","Name");
+                        display(headerBuffers,DISPLAY_COLOR_ORANGE);
 
-                        u8 symbolBinding[10];
-                        u8 symbolType[10];
                         u8 symbolOther[10];
 
                         // Number of symbols is total size divided by entry size
                         for ( u32 i=0; i< elf64Shdr.sh_size / elf64Shdr.sh_entsize ;i++){
-
                             fread(&elf64Sym,1,sizeof(Elf64_Sym),fp);
-
-                            // kelfv_resolve_symbol_type_binding(elf64Sym.st_info,symbolType,10,symbolBinding,10);
-                            // kelfv_resolve_symbol_other(elf64Sym.st_other,symbolOther,10);
-
-                            if ( elf64Sym.st_shndx == 0 )
-                                printf("0x%-10x0x%-10x%-10s%-10s%-10s%-10s%-25s\n",elf64Sym.st_value,elf64Sym.st_size,symbolType,symbolBinding,"UNK",symbolOther,symbolsNames + elf64Sym.st_name);
-                            else
-                                printf("0x%-10x0x%-10x%-10s%-10s%-10d%-10s%-25s\n",elf64Sym.st_value,elf64Sym.st_size,symbolType,symbolBinding,elf64Sym.st_shndx,symbolOther,symbolsNames + elf64Sym.st_name);
-
+                            printf("0x%-10.08lx0x%-6.lx%-12s%-10s%-8d%-10s%-25s\n",elf64Sym.st_value,elf64Sym.st_size,get_elf_symbol_type(elf64Sym.st_info&0xf),get_elf_symbol_binding(elf64Sym.st_info >> 4),elf64Sym.st_shndx,get_elf_symbol_visibility(elf64Sym.st_other),symbolsNames + elf64Sym.st_name);
                         }
 
                         // Freeing allocated memory
                         free(symbolsNames);
+
+                        // Restoring the previous offset
+                        fseek(fp,currOff,SEEK_SET);
                     }
                 }
             }
@@ -626,7 +621,7 @@ void parse_elf_symbols(FILE * fp , u32 symbolTableOffset , u8 elfClass){
 
 
 /* Extract entries of each relocation table */
-static void extract_relocation_entries(FILE * fp , u8 elfClass ,u64 relocationEntriesOffset, u64 sectionSize , u8 relocationType ){
+static void extract_relocation_entries(FILE * fp , u8 elfClass ,u64 relocationEntriesOffset, u64 sectionSize , u8 relocationType , u32 targetSymboTable, u32 targetSection ){
 
     // Saving the current offset of the file pointer
     u64 currOff = ftell(fp);
@@ -634,16 +629,19 @@ static void extract_relocation_entries(FILE * fp , u8 elfClass ,u64 relocationEn
     // Number of relocation entries
     u64 numEntries;
 
-    u8 relocationTypeStr[20];
+
 
     // Seeking to the given offset
     fseek(fp,relocationEntriesOffset,SEEK_SET);
 
+    u8 headerBuffers[120];
+
+
     if (relocationType == SHT_REL ){
 
         printf("Relocations of type 'REL': \n");
-
-        printf("%-10s%-20s%-10s%-10s\n", "Offset", "Info","Type","SecIdx");
+        sprintf(headerBuffers,"%-28s%-17s%-11s%-20s%s\n", "       Offset", "Info","Type","SymIdx in Sec","Target Section");
+        display(headerBuffers,DISPLAY_COLOR_ORANGE);
 
         if ( elfClass == ELFCLASS32){
 
@@ -652,10 +650,7 @@ static void extract_relocation_entries(FILE * fp , u8 elfClass ,u64 relocationEn
 
             for( u32 i=0 ;i < numEntries; i++){
                 fread(&elf32Rel , 1 , sizeof(Elf32_Rel) , fp);
-
-                // kelfv_resolve_relocation_type(ELF32_R_TYPE(elf32Rel.r_info),relocationTypeStr,20);
-
-                printf("0x%-10x0x%-10x%-20s%-10d\n", elf32Rel.r_offset, elf32Rel.r_info,relocationTypeStr,ELF32_R_SYM(elf32Rel.r_info));
+                printf("0x%-18.016x0x%-18.016x%-19s%-8d%-15d%-15d\n", elf32Rel.r_offset, elf32Rel.r_info,get_elf_reloc_type(ELF32_R_TYPE(elf32Rel.r_info)),ELF32_R_SYM(elf32Rel.r_info),targetSymboTable,targetSection);
             }
         }
         else if ( elfClass == ELFCLASS64){
@@ -665,21 +660,17 @@ static void extract_relocation_entries(FILE * fp , u8 elfClass ,u64 relocationEn
 
             for( u32 i=0 ;i < numEntries; i++){
                 fread(&elf64Rel , 1 , sizeof(Elf64_Rel) , fp);
-
-                // kelfv_resolve_relocation_type(ELF64_R_TYPE(elf64Rel.r_info),relocationTypeStr,20);
-
-                printf("0x%-10x0x%-10x%-20s%-10d\n", elf64Rel.r_offset, elf64Rel.r_info,relocationTypeStr,ELF64_R_SYM(elf64Rel.r_info));
-
-
+                printf("0x%-18.016lx0x%-18.016lx%-19s%-8ld%-15d%-15d0x%x\n", elf64Rel.r_offset, elf64Rel.r_info,get_elf_reloc_type(ELF32_R_TYPE(elf64Rel.r_info)),ELF64_R_SYM(elf64Rel.r_info),targetSymboTable,targetSection);
             }
         }
+        printf("\n");
     }
     else if (relocationType == SHT_RELA ){
 
         printf("Relocations of type 'RELA': \n");
-
-        printf("%-10s%-20s%-10s%-10s\n", "Offset", "Info","Type","SecIdx");
-
+        sprintf(headerBuffers,"%-28s%-17s%-11s%-20s%-20s%s\n", "       Offset", "Info","Type","SymIdx in Sec","Target Section","Addend");
+        display(headerBuffers,DISPLAY_COLOR_ORANGE);
+        
         if ( elfClass == ELFCLASS32){
 
             Elf32_Rela elf32Rela;
@@ -688,11 +679,7 @@ static void extract_relocation_entries(FILE * fp , u8 elfClass ,u64 relocationEn
 
             for( u32 i=0 ;i < numEntries; i++){
                 fread(&elf32Rela , 1 , sizeof(Elf32_Rel) , fp);
-
-                // kelfv_resolve_relocation_type(ELF32_R_TYPE(elf32Rela.r_info),relocationTypeStr,20);
-
-                printf("0x%-10x0x%-10x%-20s%-10d\n", elf32Rela.r_offset, elf32Rela.r_info,relocationTypeStr,ELF32_R_SYM(elf32Rela.r_info));
-
+                printf("0x%-18.016x0x%-18.016x%-19s%-8d%-15d%-15d0x%x\n", elf32Rela.r_offset, elf32Rela.r_info,get_elf_reloc_type(elf32Rela.r_info&0xff),ELF32_R_SYM(elf32Rela.r_info),targetSymboTable,targetSection,elf32Rela.r_addend);
             }
         }
         else if ( elfClass == ELFCLASS64){
@@ -702,19 +689,14 @@ static void extract_relocation_entries(FILE * fp , u8 elfClass ,u64 relocationEn
 
             for( u32 i=0 ;i < numEntries; i++){
                 fread(&elf64Rela , 1 , sizeof(Elf64_Rela) , fp);
-
-                // kelfv_resolve_relocation_type(ELF64_R_TYPE(elf64Rela.r_info),relocationTypeStr,20);
-
-                printf("0x%-10x0x%-10x%-20s%-10d\n", elf64Rela.r_offset, elf64Rela.r_info,relocationTypeStr,ELF64_R_SYM(elf64Rela.r_info));
+                printf("0x%-18.016lx0x%-18.016lx%-19s%-8ld%-15d%-15d0x%lx\n", elf64Rela.r_offset, elf64Rela.r_info,get_elf_reloc_type(elf64Rela.r_info&0xff),ELF64_R_SYM(elf64Rela.r_info),targetSymboTable,targetSection,elf64Rela.r_addend);
             }
         }
-
+        printf("\n");
     }
 
     // Recovering back the offset
     fseek(fp,currOff,SEEK_SET);
-
-
 }
 
 /* Parse ELF relocations */
@@ -744,10 +726,9 @@ void parse_elf_relocs(FILE * fp, u8 elfClass){
 
             for ( u32 i=0; i< elf32Ehdr.e_shnum ; i++){
                 fread(&elf32Shdr,1,sizeof(Elf32_Shdr),fp);
-
+                
                 if (elf32Shdr.sh_type==SHT_REL || elf32Shdr.sh_type==SHT_RELA)
-                    extract_relocation_entries(fp,ELFCLASS32,elf32Shdr.sh_offset, elf32Shdr.sh_size ,elf32Shdr.sh_type);
-
+                    extract_relocation_entries(fp,ELFCLASS32,elf32Shdr.sh_offset, elf32Shdr.sh_size ,elf32Shdr.sh_type,elf32Shdr.sh_link,elf32Shdr.sh_info);
             }
 
         }
@@ -773,7 +754,7 @@ void parse_elf_relocs(FILE * fp, u8 elfClass){
                 fread(&elf64Shdr,1,sizeof(Elf64_Shdr),fp);
 
                 if (elf64Shdr.sh_type==SHT_REL || elf64Shdr.sh_type==SHT_RELA)
-                    extract_relocation_entries(fp,ELFCLASS64,elf64Shdr.sh_offset, elf64Shdr.sh_size ,elf64Shdr.sh_type);
+                    extract_relocation_entries(fp,ELFCLASS64,elf64Shdr.sh_offset, elf64Shdr.sh_size ,elf64Shdr.sh_type,elf64Shdr.sh_link,elf64Shdr.sh_info);
             }
         }
 
@@ -784,7 +765,7 @@ void parse_elf_relocs(FILE * fp, u8 elfClass){
 
 
 /* This function simply dumps the given number of raw bytes */
-void pe_parse_raw_bytes(FILE *fp, u32 rawBytesOffset, u32 nofRawBytes){
+void pe_parse_raw_bytes(FILE *fp, u64 rawBytesOffset, u32 nofRawBytes){
 
     fseek(fp,rawBytesOffset,SEEK_SET);
 
@@ -807,7 +788,7 @@ void pe_parse_raw_bytes(FILE *fp, u32 rawBytesOffset, u32 nofRawBytes){
             // TODO bug of ASCII print if bytes are less than 16
             for(u32 i=0;i<nofRawBytes;i++){
                 if(i%16==0)
-                    printf("%08x: ",rawBytesOffset);        
+                    printf("%016llx: ",rawBytesOffset);        
                 printf("%02x ",rawBytesBuff[i]);
                 
                 if((i+1)%16==0){

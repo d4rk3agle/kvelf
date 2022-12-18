@@ -1,5 +1,5 @@
 # kvelf
-kvelf is a ELF parser.
+kvelf is an ELF parser.
 
 
 ## Installation
